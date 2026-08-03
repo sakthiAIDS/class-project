@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}NGO Dashboard{% endblock %}
+{% block page_title %}NGO Dashboard{% endblock %}
+{% block page_sub %}Find and accept nearby food donations{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-green"><i class="fa-solid fa-list-check"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.available }}">0</div>
+      <div class="stat-label">Available Donations</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-orange"><i class="fa-solid fa-handshake"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.accepted }}">0</div>
+      <div class="stat-label">Accepted Donations</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-blue"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.completed }}">0</div>
+      <div class="stat-label">Completed Pickups</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-purple"><i class="fa-solid fa-bowl-rice"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.todays_meals }}">0</div>
+      <div class="stat-label">Today's Meals</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel mb-4">
+  <div class="panel-head">
+    <div><h3>Available Donations</h3><div class="panel-sub">Sorted by priority and expiry</div></div>
+    <div class="d-flex gap-2">
+      <select class="form-select form-select-sm" id="filterCategory" style="width:140px;">
+        <option value="">All Categories</option>
+        <option>Main Course</option><option>Snacks</option><option>Dessert</option><option>Beverage</option>
+      </select>
+      <select class="form-select form-select-sm" id="filterPriority" style="width:130px;">
+        <option value="">All Priorities</option>
+        <option>High</option><option>Normal</option>
+      </select>
+    </div>
+  </div>
+
+  {% if available %}
+  <div class="row g-3" id="donationGrid">
+    {% for d in available %}
+    <div class="col-md-6 col-xl-4 donation-item" data-category="{{ d.category }}" data-priority="{{ d.priority }}">
+      <div class="donation-card">
+        <div class="thumb" style="background:linear-gradient(135deg,#DCFCE7,#F0FDF4);display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-bowl-food" style="font-size:2.4rem;color:#16A34A;opacity:0.5;"></i>
+          <span class="priority-tag" style="color: {{ '#DC2626' if d.priority=='High' else '#16A34A' }};">
+            <i class="fa-solid {{ 'fa-triangle-exclamation' if d.priority=='High' else 'fa-circle-check' }}"></i> {{ d.priority }}
+          </span>
+        </div>
+        <div class="body">
+          <h5>{{ d.food_name }}</h5>
+          <div class="meta"><i class="fa-solid fa-store"></i> {{ d.donor.name }}</div>
+          <div class="meta"><i class="fa-solid fa-location-dot"></i> {{ d.distance_km }} km away</div>
+          <div class="meta"><i class="fa-solid fa-utensils"></i> {{ d.meals_count }} meals · {{ d.category }}</div>
+          {% if d.minutes_to_expiry is not none %}
+          <div class="meta countdown"><i class="fa-solid fa-hourglass-half"></i>
+            {% if d.minutes_to_expiry > 0 %}Expires in {{ d.minutes_to_expiry }} min{% else %}Expired{% endif %}
+          </div>
+          {% endif %}
+          <div class="d-flex gap-2 mt-3">
+            <form method="POST" action="{{ url_for('ngo_accept', donation_id=d.id) }}" class="flex-grow-1">
+              <button type="submit" class="btn btn-grad-primary btn-sm btn-full">Accept</button>
+            </form>
+            <button class="btn btn-outline-soft btn-sm recommend-btn" data-id="{{ d.id }}" title="AI: recommend best NGO"><i class="fa-solid fa-sparkles"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fa-solid fa-clipboard-list"></i>
+    <p>No donations available right now. Check back soon!</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <div class="panel-head"><div><h3>Your Active Pickups</h3><div class="panel-sub">Update status as pickup progresses</div></div></div>
+  {% if accepted %}
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead><tr><th>Donation</th><th>Donor</th><th>Meals</th><th>Status</th><th>Update</th></tr></thead>
+      <tbody>
+        {% for d in accepted %}
+        <tr>
+          <td><strong>{{ d.food_name }}</strong><div class="text-muted small">{{ d.donation_code }}</div></td>
+          <td>{{ d.donor.name }}</td>
+          <td>{{ d.meals_count }}</td>
+          <td><span class="badge-status badge-{{ d.status }}">{{ d.status.replace('_',' ')|title }}</span></td>
+          <td>
+            <form method="POST" action="{{ url_for('ngo_update_status', donation_id=d.id) }}" class="d-flex gap-2">
+              <select name="status" class="form-select form-select-sm" style="width:170px;">
+                <option value="volunteer_assigned">Volunteer Assigned</option>
+                <option value="picked_up">Picked Up</option>
+                <option value="delivered">Delivered</option>
+                <option value="completed">Completed</option>
+              </select>
+              <button type="submit" class="btn btn-outline-soft btn-sm">Update</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><i class="fa-solid fa-truck"></i><p>No active pickups.</p></div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function applyFilters() {
+    const cat = document.getElementById('filterCategory').value;
+    const pri = document.getElementById('filterPriority').value;
+    document.querySelectorAll('.donation-item').forEach(item => {
+      const matchCat = !cat || item.dataset.category === cat;
+      const matchPri = !pri || item.dataset.priority === pri;
+      item.style.display = (matchCat && matchPri) ? '' : 'none';
+    });
+  }
+  document.getElementById('filterCategory')?.addEventListener('change', applyFilters);
+  document.getElementById('filterPriority')?.addEventListener('change', applyFilters);
+
+  document.querySelectorAll('.recommend-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      fetch(`/api/recommend-ngo/${btn.dataset.id}`).then(r => r.json()).then(data => {
+        if (data.found) {
+          alert(`AI Recommendation:\n${data.ngo_name}\nDistance: ${data.distance_km} km\nEstimated arrival: ${data.eta_minutes} min`);
+        } else {
+          alert('No NGOs available for recommendation right now.');
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

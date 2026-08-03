@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Donate Food{% endblock %}
+{% block page_title %}Donate Food{% endblock %}
+{% block page_sub %}Fill in the details below — every donation helps{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="panel">
+      <form method="POST" action="{{ url_for('donate_food') }}" enctype="multipart/form-data" id="donateForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Food Name</label>
+            <input type="text" name="food_name" id="foodName" class="form-control" placeholder="e.g. Vegetable Biryani" required>
+            <div class="form-hint" id="aiSuggestHint" style="display:none;">
+              <i class="fa-solid fa-sparkles" style="color:var(--accent);"></i>
+              AI suggests category: <strong id="aiSuggestValue"></strong>
+              <a href="#" id="aiSuggestApply" style="color:var(--primary);font-weight:700;">Apply</a>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Food Category</label>
+            <select name="category" id="categorySelect" class="form-select" required>
+              <option value="Main Course">Main Course</option>
+              <option value="Veg">Veg</option>
+              <option value="Non Veg">Non Veg</option>
+              <option value="Dessert">Dessert</option>
+              <option value="Snacks">Snacks</option>
+              <option value="Beverage">Beverage</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Quantity</label>
+            <input type="text" name="quantity" class="form-control" placeholder="e.g. 20 kg / 15 trays" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Approximate Number of Meals</label>
+            <input type="number" name="meals_count" class="form-control" placeholder="e.g. 80" min="1" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Preparation Time</label>
+            <input type="datetime-local" name="prep_time" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Expiry Time</label>
+            <input type="datetime-local" name="expiry_time" id="expiryTime" class="form-control" required>
+            <div class="form-hint" id="priorityHint" style="display:none;"></div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Pickup Address</label>
+            <input type="text" name="pickup_address" class="form-control" placeholder="Full pickup address" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Google Maps Location <span class="text-muted fw-normal">(click map to set pin — demo map)</span></label>
+            <div id="mapPlaceholder" style="height:220px;border-radius:12px;border:1.5px dashed var(--border);background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--text-soft);cursor:pointer;">
+              <div class="text-center"><i class="fa-solid fa-map-location-dot fa-2x mb-2"></i><div class="small">Tap to drop pickup pin (demo — uses Erode coordinates)</div></div>
+            </div>
+            <input type="hidden" name="latitude" id="latInput" value="11.3410">
+            <input type="hidden" name="longitude" id="lonInput" value="77.7172">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Contact Person</label>
+            <input type="text" name="contact_person" class="form-control" value="{{ current_user.name }}" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="contact_phone" class="form-control" value="{{ current_user.phone }}" required>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Special Instructions</label>
+            <textarea name="instructions" class="form-control" rows="3" placeholder="Any handling notes for the pickup volunteer..."></textarea>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Upload Food Images</label>
+            <input type="file" name="food_image" class="form-control" accept="image/*">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-grad-primary btn-full mt-4"><i class="fa-solid fa-paper-plane me-1"></i> Submit Donation</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="panel mb-3">
+      <div class="panel-head"><div><h3><i class="fa-solid fa-sparkles" style="color:var(--accent);"></i> AI Support</h3><div class="panel-sub">Small helpers, not the main project</div></div></div>
+      <ul class="list-unstyled small text-muted mb-0" style="line-height:2;">
+        <li><i class="fa-solid fa-check text-success me-1"></i> Suggests a food category from the name</li>
+        <li><i class="fa-solid fa-check text-success me-1"></i> Flags high-priority pickups near expiry</li>
+        <li><i class="fa-solid fa-check text-success me-1"></i> Recommends the best NGO after you submit</li>
+        <li><i class="fa-solid fa-check text-success me-1"></i> Warns about duplicate donations</li>
+      </ul>
+    </div>
+    <div class="panel glass">
+      <h3 class="mb-2" style="font-size:1rem;font-weight:800;">Tips for a great donation</h3>
+      <p class="small text-muted mb-0">Set an accurate expiry time so NGOs can prioritize pickups correctly, and add clear pickup instructions to speed up the handoff.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const foodNameInput = document.getElementById('foodName');
+  const hint = document.getElementById('aiSuggestHint');
+  const hintValue = document.getElementById('aiSuggestValue');
+  const applyLink = document.getElementById('aiSuggestApply');
+  const categorySelect = document.getElementById('categorySelect');
+  let debounceTimer;
+
+  foodNameInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const value = foodNameInput.value.trim();
+    if (!value) { hint.style.display = 'none'; return; }
+    debounceTimer = setTimeout(() => {
+      fetch(`/api/suggest-category?food_name=${encodeURIComponent(value)}`)
+        .then(r => r.json())
+        .then(data => {
+          hintValue.textContent = data.category;
+          hint.style.display = 'block';
+        });
+    }, 400);
+  });
+
+  applyLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    categorySelect.value = hintValue.textContent;
+  });
+
+  const expiryInput = document.getElementById('expiryTime');
+  const priorityHint = document.getElementById('priorityHint');
+  expiryInput.addEventListener('change', () => {
+    const expiry = new Date(expiryInput.value);
+    const minsLeft = (expiry - new Date()) / 60000;
+    if (minsLeft > 0 && minsLeft <= 45) {
+      priorityHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--danger);"></i> <strong style="color:var(--danger);">High Priority</strong> — this donation expires soon';
+      priorityHint.style.display = 'block';
+    } else if (minsLeft > 45) {
+      priorityHint.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--primary);"></i> Normal priority';
+      priorityHint.style.display = 'block';
+    }
+  });
+
+  // Demo map placeholder — just gives visual feedback, coordinates stay fixed for the prototype
+  document.getElementById('mapPlaceholder').addEventListener('click', function () {
+    this.innerHTML = '<div class="text-center text-success"><i class="fa-solid fa-map-pin fa-2x mb-2"></i><div class="small fw-bold">Pickup pin set</div></div>';
+  });
+</script>
+{% endblock %}

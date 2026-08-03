@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Track Donation{% endblock %}
+{% block page_title %}Track Donation{% endblock %}
+{% block page_sub %}{{ donation.donation_code }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="panel text-center mb-3">
+      <div style="width:64px;height:64px;border-radius:16px;background:var(--primary-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;margin:0 auto 14px;">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <h3 style="font-size:1.05rem;font-weight:800;">{{ donation.donation_code }}</h3>
+      <p class="text-muted small mb-2">{{ donation.food_name }} · {{ donation.meals_count }} meals</p>
+      <span class="badge-status badge-{{ donation.status }}">{{ donation.status.replace('_',' ')|title }}</span>
+
+      <div class="mt-3">
+        <div class="progress-modern"><div class="bar" style="width: {{ ((current_index+1)/steps|length*100)|round(0) }}%;"></div></div>
+        <div class="small text-muted mt-2">Step {{ current_index + 1 }} of {{ steps|length }}</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="font-size:0.95rem;font-weight:800;" class="mb-3">Donation Details</h3>
+      <div class="small text-muted mb-2"><i class="fa-solid fa-location-dot me-2"></i>{{ donation.pickup_address }}</div>
+      <div class="small text-muted mb-2"><i class="fa-solid fa-user me-2"></i>{{ donation.contact_person }} · {{ donation.contact_phone }}</div>
+      {% if donation.expiry_time %}
+      <div class="small text-muted mb-2"><i class="fa-solid fa-clock me-2"></i>Expires: {{ donation.expiry_time.strftime('%d %b, %I:%M %p') }}</div>
+      {% endif %}
+      {% if donation.ngo_id %}
+      <div class="small text-muted"><i class="fa-solid fa-hand-holding-heart me-2"></i>Accepted by: {{ donation.ngo.name if donation.ngo else 'NGO' }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Live Timeline</h3><div class="panel-sub">Estimated pickup within 30–45 minutes of acceptance</div></div></div>
+
+      <div class="timeline">
+        {% set step_meta = {
+          'created': ('Donation Created', 'fa-circle-plus', 'Your donation was posted successfully'),
+          'accepted': ('NGO Accepted', 'fa-handshake', 'An NGO has accepted your donation'),
+          'volunteer_assigned': ('Volunteer Assigned', 'fa-person-biking', 'A volunteer is assigned for pickup'),
+          'picked_up': ('Picked Up', 'fa-box', 'Food has been collected from your location'),
+          'delivered': ('Delivered', 'fa-truck-ramp-box', 'Food delivered to beneficiaries'),
+          'completed': ('Completed', 'fa-circle-check', 'Donation cycle completed — thank you!')
+        } %}
+        {% for step in steps %}
+          {% set meta = step_meta[step] %}
+          <div class="timeline-step {{ 'done' if loop.index0 < current_index else 'current' if loop.index0 == current_index else '' }}">
+            <div class="dot-wrap">
+              <div class="dot"><i class="fa-solid {{ meta[1] }}"></i></div>
+              {% if not loop.last %}<div class="line"></div>{% endif %}
+            </div>
+            <div class="step-content">
+              <h6>{{ meta[0] }}</h6>
+              <p>{{ meta[2] }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
