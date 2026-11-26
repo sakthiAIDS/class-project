@@ -10,6 +10,7 @@ import Settings from './pages/settings'
 import Dashboard from './pages/dashboard'
 import Clients from './pages/clients'
 import Calender from './pages/calender'
+import Register from './pages/register'
 
 import './App.css'
 
@@ -40,6 +41,7 @@ function App() {
       <Route path="/Dashboard" element={<Dashboard/>}/>
       <Route path="/Clients" element={<Clients/>}/>
       <Route path="/calender" element={<Calender/>}/>
+      <Route path="/register" element={<Register/>}/>
         </Routes>
         </BrowserRouter>
     {/*
