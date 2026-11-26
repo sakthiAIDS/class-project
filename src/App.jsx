@@ -5,13 +5,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from './pages/login'
 import Projects from './pages/project'
 import Tasks from './pages/tasks'
+import Team from './pages/team'
+import Settings from './pages/settings'
+import Dashboard from './pages/dashboard'
+import Clients from './pages/clients'
+import Calender from './pages/calender'
 
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
 import './App.css'
-
-
 
 function App() {
   const [count, setCount] = useState(0)
@@ -30,19 +30,18 @@ function App() {
 
   return (
     <>
-     <BrowserRouter>
-
-      <Routes>
-
-        <Route path="/" element={<Login />} />
-
-        <Route path="/projects" element={<Projects />} />
-
-        <Route path="/tasks" element={<Tasks />} />
-
-      </Routes>
-
-    </BrowserRouter>
+    <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/project" element={<Projects />} />
+      <Route path="/tasks" element={<Tasks/>} />
+      <Route path="/team" element={<Team/>}/>
+      <Route path="/settings" element={<Settings/>} />
+      <Route path="/Dashboard" element={<Dashboard/>}/>
+      <Route path="/Clients" element={<Clients/>}/>
+      <Route path="/calender" element={<Calender/>}/>
+        </Routes>
+        </BrowserRouter>
     {/*
       <>
     <div className="text-blue-500">HI</div>

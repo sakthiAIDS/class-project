@@ -14,7 +14,7 @@ function Login() {
 
         console.log(email, password)
 
-        navigate('/projects')
+        navigate('/project')
     }
 
     return (
