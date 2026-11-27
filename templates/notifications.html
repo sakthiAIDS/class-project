@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block page_sub %}Stay updated on your donations{% endblock %}
+
+{% block content %}
+<div class="panel">
+  {% if notifications %}
+    {% set icon_map = {'accepted': ('fa-handshake','bg-icon-green'), 'pickup': ('fa-truck','bg-icon-orange'),
+                        'delivered': ('fa-box-open','bg-icon-blue'), 'expiry': ('fa-clock','bg-icon-purple'),
+                        'info': ('fa-circle-info','bg-icon-blue')} %}
+    <div class="d-flex flex-column gap-2">
+      {% for n in notifications %}
+        {% set meta = icon_map.get(n.type, icon_map['info']) %}
+        <div class="d-flex align-items-start gap-3 p-3" style="border:1px solid var(--border);border-radius:14px;{{ 'background:var(--surface-2);' if not n.is_read }}">
+          <div class="qi {{ meta[1] }}" style="flex-shrink:0;"><i class="fa-solid {{ meta[0] }}"></i></div>
+          <div class="flex-grow-1">
+            <strong style="font-size:0.9rem;">{{ n.title }}</strong>
+            <p class="small text-muted mb-1">{{ n.message }}</p>
+            <span class="text-muted" style="font-size:0.72rem;">{{ n.created_at.strftime('%d %b, %I:%M %p') }}</span>
+          </div>
+          {% if not n.is_read %}<span class="dot" style="position:static;background:var(--accent);width:8px;height:8px;border-radius:50%;"></span>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <i class="fa-solid fa-bell-slash"></i>
+      <p>No notifications yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

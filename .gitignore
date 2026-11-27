@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -22,3 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+=======
+venv/ __pycache__/ *.pyc instance/ uploads/ qrcodes/ *.db
+
+>>>>>>> 8606cb47e998208affaca991b75fa79a5de99608

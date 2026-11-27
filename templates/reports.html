@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Reports{% endblock %}
+{% block page_sub %}Generate and export donation reports{% endblock %}
+
+{% block content %}
+
+<div class="panel mb-4">
+  <div class="panel-head"><div><h3>Generate Report</h3><div class="panel-sub">Choose a time range and export format</div></div></div>
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label">Report Period</label>
+      <select class="form-select">
+        <option>Daily</option><option selected>Weekly</option><option>Monthly</option><option>Yearly</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <a href="{{ url_for('download_report', fmt='pdf') }}" class="btn btn-grad-primary w-100"><i class="fa-solid fa-file-pdf me-1"></i> Download PDF</a>
+    </div>
+    <div class="col-md-3">
+      <a href="{{ url_for('download_report', fmt='excel') }}" class="btn btn-outline-soft w-100"><i class="fa-solid fa-file-excel me-1"></i> Download Excel</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-green"><i class="fa-solid fa-box-open"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.total_donations }}">0</div>
+      <div class="stat-label">Total Donations</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-orange"><i class="fa-solid fa-bowl-rice"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.total_meals }}">0</div>
+      <div class="stat-label">Meals Served</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-blue"><i class="fa-solid fa-leaf"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.food_saved_kg|int }}">0</div>
+      <div class="stat-label">Food Wastage Reduced (kg)</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-purple"><i class="fa-solid fa-percent"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.success_rate }}">0</div>
+      <div class="stat-label">Donation Success Rate</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Top Food Donors</h3><div class="panel-sub">By number of donations</div></div></div>
+      {% if top_donors %}
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead><tr><th>#</th><th>Donor</th><th>Donations</th></tr></thead>
+          <tbody>
+            {% for name, count in top_donors %}
+            <tr><td class="text-muted">{{ loop.index }}</td><td><strong>{{ name }}</strong></td><td>{{ count }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="empty-state"><i class="fa-solid fa-store-slash"></i><p>No donor data yet.</p></div>{% endif %}
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Top NGOs</h3><div class="panel-sub">By pickups completed</div></div></div>
+      {% if top_ngos %}
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead><tr><th>#</th><th>NGO</th><th>Pickups</th></tr></thead>
+          <tbody>
+            {% for name, count in top_ngos %}
+            <tr><td class="text-muted">{{ loop.index }}</td><td><strong>{{ name }}</strong></td><td>{{ count }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="empty-state"><i class="fa-solid fa-hand-holding-heart"></i><p>No NGO data yet.</p></div>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_sub %}Manage your account details{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="panel text-center">
+      <div class="avatar mx-auto mb-3" style="width:84px;height:84px;font-size:1.6rem;border-radius:22px;">{{ current_user.name[:2].upper() }}</div>
+      <h3 style="font-size:1.1rem;font-weight:800;" class="mb-0">{{ current_user.name }}</h3>
+      <p class="text-muted small mb-3">{{ current_user.category }} · {{ current_user.role|title }}</p>
+
+      <div class="row g-2 text-center mb-3">
+        <div class="col-4">
+          <div class="stat-value font-data" style="font-size:1.2rem;">{{ stats.total }}</div>
+          <div class="stat-label" style="font-size:0.68rem;">Donations</div>
+        </div>
+        <div class="col-4">
+          <div class="stat-value font-data" style="font-size:1.2rem;">{{ stats.meals }}</div>
+          <div class="stat-label" style="font-size:0.68rem;">Meals</div>
+        </div>
+        <div class="col-4">
+          <div class="stat-value font-data" style="font-size:1.2rem;">{{ stats.completed }}</div>
+          <div class="stat-label" style="font-size:0.68rem;">Completed</div>
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('change_password') }}" class="text-start">
+        <label class="form-label small">Change Password</label>
+        <input type="password" name="current_password" class="form-control form-control-sm mb-2" placeholder="Current password" required>
+        <input type="password" name="new_password" class="form-control form-control-sm mb-2" placeholder="New password" required>
+        <button type="submit" class="btn btn-outline-soft btn-sm btn-full">Update Password</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Personal Details</h3><div class="panel-sub">Edit your profile information</div></div></div>
+      <form method="POST" action="{{ url_for('profile') }}">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="name" class="form-control" value="{{ current_user.name }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" value="{{ current_user.phone }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-control" value="{{ current_user.category }}" disabled>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Address</label>
+            <input type="text" name="address" class="form-control" value="{{ current_user.address }}">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-grad-primary mt-4"><i class="fa-solid fa-check me-1"></i> Save Changes</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

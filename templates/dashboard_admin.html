@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_sub %}System-wide analytics and management{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-green"><i class="fa-solid fa-users"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.donors }}">0</div>
+      <div class="stat-label">Registered Donors</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-orange"><i class="fa-solid fa-hand-holding-heart"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.ngos }}">0</div>
+      <div class="stat-label">Registered NGOs</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-blue"><i class="fa-solid fa-hourglass-half"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.pending_donations }}">0</div>
+      <div class="stat-label">Pending Donations</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-purple"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.completed_donations }}">0</div>
+      <div class="stat-label">Completed Donations</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-green"><i class="fa-solid fa-leaf"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.food_saved_kg|int }}">0</div>
+      <div class="stat-label">Food Saved (kg)</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-orange"><i class="fa-solid fa-bowl-rice"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.total_meals }}">0</div>
+      <div class="stat-label">Meals Served</div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel h-100 d-flex align-items-center justify-content-between" style="padding:16px 20px;">
+      <div>
+        <strong style="font-size:0.9rem;">Pending NGO Approvals</strong>
+        <div class="small text-muted">{{ pending_ngos|length }} awaiting review</div>
+      </div>
+      <a href="#pendingNgos" class="btn btn-grad-accent btn-sm">Review</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="panel h-100">
+      <div class="panel-head"><div><h3>Monthly Donations</h3><div class="panel-sub">Platform-wide, last 6 months</div></div></div>
+      <div class="chart-box"><canvas id="adminMonthlyChart"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel h-100">
+      <div class="panel-head"><div><h3>Food Categories</h3><div class="panel-sub">Distribution</div></div></div>
+      <div class="chart-box"><canvas id="adminCategoryChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4" id="pendingNgos">
+  <div class="col-12">
+    <div class="panel">
+      <div class="panel-head"><div><h3>Pending NGO Approvals</h3><div class="panel-sub">Verify before allowing pickups</div></div></div>
+      {% if pending_ngos %}
+      <div class="table-responsive">
+        <table class="table-modern">
+          <thead><tr><th>NGO Name</th><th>Email</th><th>Phone</th><th>Address</th><th></th></tr></thead>
+          <tbody>
+            {% for ngo in pending_ngos %}
+            <tr>
+              <td><div class="d-flex align-items-center gap-2"><div class="avatar-sm">{{ ngo.name[:2].upper() }}</div><strong>{{ ngo.name }}</strong></div></td>
+              <td class="text-muted">{{ ngo.email }}</td>
+              <td class="text-muted">{{ ngo.phone }}</td>
+              <td class="text-muted">{{ ngo.address }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('approve_ngo', user_id=ngo.id) }}">
+                  <button type="submit" class="btn btn-grad-primary btn-sm">Approve</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="fa-solid fa-circle-check"></i><p>No pending approvals — all caught up!</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div><h3>Recent Donations</h3><div class="panel-sub">Latest 10 across the platform</div></div>
+    <a href="{{ url_for('reports') }}" class="btn btn-outline-soft btn-sm">Generate Reports</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead><tr><th>Donation</th><th>Donor</th><th>Meals</th><th>Status</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        {% for d in recent_donations %}
+        <tr>
+          <td><strong>{{ d.food_name }}</strong><div class="text-muted small">{{ d.donation_code }}</div></td>
+          <td>{{ d.donor.name }}</td>
+          <td>{{ d.meals_count }}</td>
+          <td><span class="badge-status badge-{{ d.status }}">{{ d.status.replace('_',' ')|title }}</span></td>
+          <td class="text-muted">{{ d.created_at.strftime('%d %b, %Y') }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('remove_user', user_id=d.donor.id) }}" onsubmit="return confirm('Disable this donor account?');">
+              <button type="submit" class="btn btn-ghost btn-sm text-danger" title="Remove fake user"><i class="fa-solid fa-user-slash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  fetch("{{ url_for('chart_monthly_donations') }}").then(r => r.json()).then(data => {
+    new Chart(document.getElementById('adminMonthlyChart'), {
+      type: 'line',
+      data: { labels: data.labels, datasets: [{ label: 'Donations', data: data.values,
+        borderColor: '#16A34A', backgroundColor: 'rgba(22,163,74,0.12)', fill: true, tension: 0.4, pointBackgroundColor: '#16A34A', pointRadius: 4 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+  });
+  fetch("{{ url_for('chart_donation_categories') }}").then(r => r.json()).then(data => {
+    new Chart(document.getElementById('adminCategoryChart'), {
+      type: 'pie',
+      data: { labels: data.labels, datasets: [{ data: data.values,
+        backgroundColor: ['#16A34A', '#F97316', '#3B82F6', '#8B5CF6', '#F59E0B'], borderWidth: 0 }] },
+      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Welcome back, {{ current_user.name.split(' ')[0] }} — here's your impact so far{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-green"><i class="fa-solid fa-box-open"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.total }}">0</div>
+      <div class="stat-label">Total Donations</div>
+      <div class="stat-trend up"><i class="fa-solid fa-arrow-trend-up"></i> Active donor</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-orange"><i class="fa-solid fa-truck-fast"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.pending }}">0</div>
+      <div class="stat-label">Pending Pickups</div>
+      <div class="stat-trend"><span class="text-muted">Awaiting NGO</span></div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-blue"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.completed }}">0</div>
+      <div class="stat-label">Completed Donations</div>
+      <div class="stat-trend up"><i class="fa-solid fa-check"></i> Delivered</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon bg-icon-purple"><i class="fa-solid fa-bowl-rice"></i></div>
+      <div class="stat-value font-data" data-count="{{ stats.meals }}">0</div>
+      <div class="stat-label">Meals Donated</div>
+      <div class="stat-trend up"><i class="fa-solid fa-heart"></i> Lives touched</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <a href="{{ url_for('donate_food') }}" class="quick-tile">
+      <div class="qi bg-icon-green"><i class="fa-solid fa-plus"></i></div>
+      <div><strong>Donate Food</strong><span>Post a new donation</span></div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <a href="{{ url_for('history') }}" class="quick-tile">
+      <div class="qi bg-icon-blue"><i class="fa-solid fa-location-crosshairs"></i></div>
+      <div><strong>Track Donation</strong><span>See live status</span></div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <a href="{{ url_for('history') }}" class="quick-tile">
+      <div class="qi bg-icon-orange"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div><strong>Donation History</strong><span>View past records</span></div>
+    </a>
+  </div>
+  <div class="col-md-3 col-6">
+    <a href="{{ url_for('notifications') }}" class="quick-tile">
+      <div class="qi bg-icon-purple"><i class="fa-solid fa-bell"></i></div>
+      <div><strong>Notifications</strong><span>Stay updated</span></div>
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="panel h-100">
+      <div class="panel-head">
+        <div><h3>Monthly Donations</h3><div class="panel-sub">Last 6 months</div></div>
+      </div>
+      <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="panel h-100">
+      <div class="panel-head">
+        <div><h3>Donation Categories</h3><div class="panel-sub">By food type</div></div>
+      </div>
+      <div class="chart-box"><canvas id="categoryChart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-head">
+    <div><h3>Recent Activity</h3><div class="panel-sub">Your latest donations</div></div>
+    <a href="{{ url_for('history') }}" class="btn btn-outline-soft btn-sm">View all</a>
+  </div>
+
+  {% if recent %}
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead><tr><th>Donation</th><th>Category</th><th>Meals</th><th>Status</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        {% for d in recent %}
+        <tr>
+          <td><strong>{{ d.food_name }}</strong><div class="text-muted small">{{ d.donation_code }}</div></td>
+          <td>{{ d.category }}</td>
+          <td>{{ d.meals_count }}</td>
+          <td><span class="badge-status badge-{{ d.status }}">{{ d.status.replace('_',' ')|title }}</span></td>
+          <td class="text-muted">{{ d.created_at.strftime('%d %b, %Y') }}</td>
+          <td><a href="{{ url_for('track_donation', code=d.donation_code) }}" class="btn btn-ghost btn-sm">Track</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fa-solid fa-bowl-food"></i>
+    <p>No donations yet. Ready to make your first one?</p>
+    <a href="{{ url_for('donate_food') }}" class="btn btn-grad-primary btn-sm">Donate Food</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  fetch("{{ url_for('chart_monthly_donations') }}").then(r => r.json()).then(data => {
+    new Chart(document.getElementById('monthlyChart'), {
+      type: 'bar',
+      data: { labels: data.labels, datasets: [{ label: 'Donations', data: data.values,
+        backgroundColor: 'rgba(22,163,74,0.85)', borderRadius: 8, maxBarThickness: 36 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+  });
+  fetch("{{ url_for('chart_donation_categories') }}").then(r => r.json()).then(data => {
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'doughnut',
+      data: { labels: data.labels, datasets: [{ data: data.values,
+        backgroundColor: ['#16A34A', '#F97316', '#3B82F6', '#8B5CF6', '#F59E0B'], borderWidth: 0 } ] },
+      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }, cutout: '68%' }
+    });
+  });
+</script>
+{% endblock %}
