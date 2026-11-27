@@ -1,6 +1,7 @@
-function Clients(){
-    return(
-        <h1>Clients</h1>
-    );
+function Clients() {
+    return ( 
+        <div>Clients</div>
+     );
 }
-export default Clients
+
+export default Clients;

@@ -1,6 +1,7 @@
-function Settings(){
-    return(
-        <h1>Settings</h1>
-    );
+function Settings() {
+    return ( 
+        <div>Settings</div>
+     );
 }
-export default Settings
+
+export default Settings;

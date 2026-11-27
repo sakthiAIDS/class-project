@@ -1,6 +1,7 @@
-function Team(){
-    return(
-        <h1>Team</h1>
-    );
+function Team() {
+    return ( 
+        <div>Team</div>
+     );
 }
-export default Team
+
+export default Team;

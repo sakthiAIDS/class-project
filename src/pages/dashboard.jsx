@@ -1,21 +1,19 @@
-import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import {useLocation} from "react-router-dom";
 
-function Dashboard(){
-
+function Dashboard() {
     const location = useLocation();
-    const[userdata,setuserdata] = useState("");
-
+    const [userdata,setUserdata] = useState("");
     function displaydata(){
-        setuserdata(location.state);
+        setUserdata(location.state);
         console.log(userdata)
     }
-
-    return(
-        <div>
-        <h1>Dashboard</h1>
-        <button onClick ={displaydata}>Button</button>
-        </div>
-    );
+    return (
+        <>
+            <button onClick= {displaydata}>button</button>
+        </>
+        
+      );
 }
-export default Dashboard
+
+export default Dashboard;
